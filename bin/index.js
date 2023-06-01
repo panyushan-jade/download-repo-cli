@@ -1,3 +1,3 @@
 #! /usr/bin/env node
-
-console.log('test')
+import entry from '../src/index.js';
+entry()
