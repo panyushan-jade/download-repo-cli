@@ -1,0 +1,24 @@
+{
+  "name": "dl-repo-cli",
+  "version": "1.0.0",
+  "description": "一个在终端运行的源码下载器cli，支持github、gitee",
+  "main": "./bin/index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/panyushan-jade/download-repo-cli.git"
+  },
+  "bin": {
+    "dl-repo-cli": "./bin/index.js"
+  },
+  "keywords": ["download","download repo","cli","download repo cli"],
+  "author": "Jay",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/panyushan-jade/download-repo-cli/issues"
+  },
+  "homepage": "https://github.com/panyushan-jade/download-repo-cli#readme"
+}
