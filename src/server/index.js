@@ -4,7 +4,7 @@ class Server{
     constructor(baseURL,token){
         this.instance = axios.create({
             baseURL,
-            timeout: 500,
+            timeout: 3000,
             headers: {'Authorization': `Bearer ${token}`}
           });
           this.instance.interceptors.response.use((response) => {
