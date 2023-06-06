@@ -3,10 +3,10 @@ import Server from './index.js';
 
 class Gitee extends Server {
     constructor(token){
-        super('https://api.github.com',token)
+        super('https://gitee.com/api/v5',token)
     }
     searchRepositories(params){
-        return this.instance.get({url:'/search/repositories',params})
+        return this.instance.get('/search/repositories',{params})
     }
 }
 

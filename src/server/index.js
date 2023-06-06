@@ -5,13 +5,16 @@ class Server{
         this.instance = axios.create({
             baseURL,
             timeout: 3000,
-            headers: {'Authorization': `Bearer ${token}`}
+            headers: token ? {'Authorization': `Bearer ${token}`} : null
           });
           this.instance.interceptors.response.use((response) => {
             return response.data
           },(error) => {
             return Promise.reject(error);
           })
+    }
+    searchTags(fullName){
+        return this.instance.get(`/repos/${fullName}/tags`,{per_page:100})
     }
     
 }

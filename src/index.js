@@ -1,18 +1,14 @@
 import { program, Option } from "commander";
 import fs from "fs-extra";
-import inquirer from "inquirer";
 import chalk from "chalk";
-import ora from "ora";
 import path from "path";
-import { checkFileIsExist, getAnswers, wrapperLoading } from "./utils.js";
-import { TEMPFILEPATH, PKG, GITHUB, GITEE } from "./constant.js";
 import shell from "shelljs";
 
 import giteeApi from "./server/gitee.js";
 import githubApi from "./server/github.js";
 
-// react-template-admin
-// TypeScript
+import { checkFileIsExist, getAnswers, wrapperLoading } from "./utils.js";
+import { TEMPFILEPATH, PKG, GITHUB, GITEE } from "./constant.js";
 
 let downLoadCommand = "";
 let repoFileName = "";
@@ -32,10 +28,10 @@ export default function entry() {
     .action(async ({ token, platform }) => {
       // 1、检查并更新缓存文件
       await checkAndUpdateCache(token, platform);
-      // 2、输入仓库名称、语言并搜索
+      // 2、输入仓库名称、语言等并搜索
       await searchRepositoriesAndTags();
-      // // 3、下载
-      await downLoadFile();
+      // // 3、clone 下载
+      downLoadCommand && (await downLoadFile());
     });
   program.parse(process.argv);
 }
@@ -48,7 +44,7 @@ async function checkAndUpdateCache(t, p) {
       platform: p ? p : platform,
     });
   } else {
-    creatCache();
+    await creatCache();
   }
 }
 
@@ -63,21 +59,25 @@ async function downLoadFile() {
     ]);
     if (confirm) {
       await wrapperLoading(execaCommand.bind(this, true), {
-        loadingInfo: "下载中......",
+        loadingInfo: "下载中,请稍后......",
       });
     } else {
       shell.exit(1);
     }
   } else {
     await wrapperLoading(execaCommand.bind(this, false), {
-      loadingInfo: "下载中......",
+      loadingInfo: "下载中,请稍后......",
     });
   }
 }
 
 async function execaCommand(rm) {
   if (rm) await shell.rm("-rf", repoFileName);
-  await shell.exec(downLoadCommand);
+  const res = await shell.exec(downLoadCommand);
+  if(res?.code === 0){
+    shell.echo(chalk.green('下载成功 √√√'))
+  }
+  
 }
 
 async function searchRepositoriesAndTags() {
@@ -98,32 +98,53 @@ async function searchRepositoriesAndTags() {
       name: "language",
       message: "请输入语言",
     },
+    {
+      type: "input",
+      name: "author",
+      message: "请输入作者",
+    },
   ]);
   await searchRepoByPlatform(answers);
 }
 
-async function searchRepoByPlatform({ repoName, language }) {
+async function searchRepoByPlatform({ repoName, language, author }) {
   const { token, platform } = fs.readJsonSync(TEMPFILEPATH);
-  const api = platform === GITHUB ? new githubApi(token) : "xxxx";
-  const params = {
-    q: `${repoName}+language:${language}`,
-    per_page: 10,
-    page: 1,
-  };
+  const api = platform === GITHUB ? new githubApi(token) : new giteeApi();
+  const params =
+    platform === GITHUB
+      ? {
+          q: author
+            ? `repo:${author}/${repoName}`
+            : `${repoName}+language:${language}`,
+          per_page: 30,
+          page: 1,
+        }
+      : {
+          q: repoName,
+          owner: author ? author : undefined,
+          language: language ? language : undefined,
+          per_page: 30,
+          page: 1,
+          access_token: token,
+        };
   const result = await wrapperLoading(
     api.searchRepositories.bind(api, params),
     {
       loadingInfo: "搜索中......",
-      failInfo: "搜索失败，请重试",
     }
   );
-
-  if (result?.total_count === 0) {
+  if (
+    (result?.total_count === 0 && platform === GITHUB) || (result?.length === 0 && platform === GITEE) || !result
+  ) {
     console.log(chalk.red("搜索结果为空，请重新输入"));
-    searchRepositories();
+    searchRepositoriesAndTags();
+    return;
   }
-  console.log(`共${chalk.green(result?.total_count)}条搜索结果`);
-  const choicesRepo = result?.items.map((item) => {
+  console.log(
+    `共${chalk.green(result?.total_count || result?.length)}条搜索结果`
+  );
+  const data = platform === GITHUB ? result?.items : result;
+  const choicesRepo = data.map((item) => {
     return {
       name: `${chalk.green(item.full_name)}（${item.description}）`,
       value: item.full_name,
@@ -143,22 +164,26 @@ async function searchRepoByPlatform({ repoName, language }) {
     loadingInfo: "搜索中......",
     failInfo: "搜索失败，请重试",
   });
-  // console.log('tagResult===>',tagResult);
-  const tagChoices = tagResult?.map((item) => {
-    return {
-      name: `${chalk.green(item.name)}`,
-      value: item.name,
-    };
-  });
-  const { tag } = await getAnswers([
-    {
-      type: "list",
-      name: "tag",
-      message: "请选择tag",
-      choices: tagChoices,
-    },
-  ]);
-  downLoadCommand = `git clone --branch ${tag} https://github.com/${full_name}.git`;
+  // 处理tag为空的情况
+  if (tagResult?.length) {
+    const tagChoices = tagResult?.map((item) => {
+      return {
+        name: `${chalk.green(item.name)}`,
+        value: item.name,
+      };
+    });
+    const { tag } = await getAnswers([
+      {
+        type: "list",
+        name: "tag",
+        message: "请选择tag",
+        choices: tagChoices,
+      },
+    ]);
+    downLoadCommand = `git clone --branch ${tag} https://github.com/${full_name}.git`;
+  } else {
+    downLoadCommand = `git clone https://github.com/${full_name}.git`;
+  }
 }
 
 async function creatCache() {
