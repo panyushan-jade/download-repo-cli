@@ -3,12 +3,12 @@ import fs from "fs-extra";
 import chalk from "chalk";
 import path from "path";
 import shell from "shelljs";
-
+import os from 'os'
 import giteeApi from "./server/gitee.js";
 import githubApi from "./server/github.js";
 
 import { checkFileIsExist, getAnswers, wrapperLoading } from "./utils.js";
-import { TEMPFILEPATH, PKG, GITHUB, GITEE } from "./constant.js";
+import { TEMPFILEPATH, PKG, GITHUB, GITEE,LANGUAGE } from "./constant.js";
 
 let downLoadCommand = "";
 let repoFileName = "";
@@ -31,7 +31,7 @@ export default function entry() {
       // 2、输入仓库名称、语言等并搜索
       await searchRepositoriesAndTags();
       // // 3、clone 下载
-      downLoadCommand && (await downLoadFile());
+      await downLoadFile();
     });
   program.parse(process.argv);
 }
@@ -43,7 +43,12 @@ async function checkAndUpdateCache(t, p) {
       token: t ? t : token,
       platform: p ? p : platform,
     });
-  } else {
+  } else if(t && p){
+    fs.writeJsonSync(TEMPFILEPATH, {
+      token: t,
+      platform: p,
+    });
+  }else{
     await creatCache();
   }
 }
@@ -74,10 +79,9 @@ async function downLoadFile() {
 async function execaCommand(rm) {
   if (rm) await shell.rm("-rf", repoFileName);
   const res = await shell.exec(downLoadCommand);
-  if(res?.code === 0){
-    shell.echo(chalk.green('下载成功 √√√'))
+  if (res?.code === 0) {
+    shell.echo(chalk.green("下载成功 √√√"));
   }
-  
 }
 
 async function searchRepositoriesAndTags() {
@@ -94,9 +98,10 @@ async function searchRepositoriesAndTags() {
       },
     },
     {
-      type: "input",
+      type: "list",
       name: "language",
-      message: "请输入语言",
+      message: "请选择语言",
+      choices:LANGUAGE.map( lan => ({name: lan,value:lan}))
     },
     {
       type: "input",
@@ -134,10 +139,12 @@ async function searchRepoByPlatform({ repoName, language, author }) {
     }
   );
   if (
-    (result?.total_count === 0 && platform === GITHUB) || (result?.length === 0 && platform === GITEE) || !result
+    (result?.total_count === 0 && platform === GITHUB) ||
+    (result?.length === 0 && platform === GITEE) ||
+    !result
   ) {
     console.log(chalk.red("搜索结果为空，请重新输入"));
-    searchRepositoriesAndTags();
+    await searchRepositoriesAndTags();
     return;
   }
   console.log(
@@ -180,9 +187,9 @@ async function searchRepoByPlatform({ repoName, language, author }) {
         choices: tagChoices,
       },
     ]);
-    downLoadCommand = `git clone --branch ${tag} https://github.com/${full_name}.git`;
+    downLoadCommand = `git clone --branch ${tag} https://${platform}.com/${full_name}.git`;
   } else {
-    downLoadCommand = `git clone https://github.com/${full_name}.git`;
+    downLoadCommand = `git clone https://${platform}.com/${full_name}.git`;
   }
 }
 

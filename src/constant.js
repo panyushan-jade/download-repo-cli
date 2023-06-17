@@ -8,9 +8,12 @@ const PKG = fs.readJsonSync('./package.json');
 const GITHUB = 'github';
 const GITEE = 'gitee';
 
+const LANGUAGE = ['TypeScript','JavaScript','HTML','CSS','Python','C','C++','C#','Shell','Java','NodeJS','Dart','Go','Ruby','Swift']
+
 export {
     TEMPFILEPATH,
     PKG,
     GITHUB,
-    GITEE
+    GITEE,
+    LANGUAGE
 }
