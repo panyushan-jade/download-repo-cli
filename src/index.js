@@ -26,16 +26,16 @@ export default function entry() {
     .option("-t, --token <token>", "代码托管平台的token")
     .action(async ({ token, platform }) => {
       // 1、检查并更新缓存文件
-      await checkAndUpdateCache(token, platform);
+      await checkCache(token, platform);
       // 2、输入仓库名称、语言等并搜索
-      await searchRepositoriesAndTags();
+      await searchRepos();
       // // 3、clone 下载
-      await downLoadFile();
+      await downLoadRepo();
     });
   program.parse(process.argv);
 }
 
-async function checkAndUpdateCache(t, p) {
+async function checkCache(t, p) {
   if (checkFileIsExist(TEMPFILEPATH)) {
     const { token, platform } = fs.readJsonSync(TEMPFILEPATH);
     fs.writeJsonSync(TEMPFILEPATH, {
@@ -52,7 +52,7 @@ async function checkAndUpdateCache(t, p) {
   }
 }
 
-async function downLoadFile() {
+async function downLoadRepo() {
   if (checkFileIsExist(path.join(process.cwd(), repoFileName))) {
     const { confirm } = await getAnswers([
       {
@@ -79,7 +79,7 @@ async function execaCommand(rm) {
   }
 }
 
-async function searchRepositoriesAndTags() {
+async function searchRepos() {
   const answers = await getAnswers([
     {
       type: "input",
@@ -139,7 +139,7 @@ async function searchRepoByPlatform({ repoName, language, author }) {
     !result
   ) {
     console.log(chalk.red("搜索结果为空，请检查搜索条件是否有误后重新输入"));
-    await searchRepositoriesAndTags();
+    await searchRepos();
     return;
   }
   console.log(

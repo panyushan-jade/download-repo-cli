@@ -10,8 +10,14 @@ npm install dl-repo-cli -g
 可通过配置options手动配置platform和token的缓存配置
 dl-repo-cli -p <github|gitee> -t <your token>
 ```
-### 配置预览
+### 配置
 
 <p align="center">
    <img src="./option.png"/>
+</p>
+
+### 效果预览
+
+<p align="center">
+   <img src="./preview.gif"/>
 </p>
