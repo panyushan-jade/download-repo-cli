@@ -138,7 +138,7 @@ async function searchRepoByPlatform({ repoName, language, author }) {
     (result?.length === 0 && platform === GITEE) ||
     !result
   ) {
-    console.log(chalk.red("搜索结果为空，请重新输入"));
+    console.log(chalk.red("搜索结果为空，请检查搜索条件是否有误后重新输入"));
     await searchRepositoriesAndTags();
     return;
   }

@@ -21,13 +21,6 @@ export async function wrapperLoading(fn,message){
         spinner.stop()
         return data
     }catch(err){
-        if(Array.isArray(err?.response?.data?.messages)){
-            err?.response?.data?.messages.forEach((error) => {
-                console.log(chalk.red(error));
-            })
-        }else{
-            console.log(chalk.red(message.failInfo || err?.response?.data?.messages));
-        }
         spinner.stop()
         return null
     }
