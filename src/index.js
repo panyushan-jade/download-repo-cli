@@ -63,22 +63,18 @@ async function downLoadFile() {
       },
     ]);
     if (confirm) {
-      await wrapperLoading(execaCommand.bind(this, true), {
-        loadingInfo: "下载中,请稍后......",
-      });
+      execaCommand(true)
     } else {
       shell.exit(1);
     }
   } else {
-    await wrapperLoading(execaCommand.bind(this, false), {
-      loadingInfo: "下载中,请稍后......",
-    });
+    execaCommand(false)
   }
 }
 
 async function execaCommand(rm) {
-  if (rm) await shell.rm("-rf", repoFileName);
-  const res = await shell.exec(downLoadCommand);
+  if (rm) shell.rm("-rf", repoFileName);
+  const res = shell.exec(downLoadCommand);
   if (res?.code === 0) {
     shell.echo(chalk.green("下载成功 √√√"));
   }
@@ -187,9 +183,9 @@ async function searchRepoByPlatform({ repoName, language, author }) {
         choices: tagChoices,
       },
     ]);
-    downLoadCommand = `git clone --branch ${tag} https://${platform}.com/${full_name}.git`;
+    downLoadCommand = `git clone --branch ${tag} git@${platform}.com:${full_name}.git`;
   } else {
-    downLoadCommand = `git clone https://${platform}.com/${full_name}.git`;
+    downLoadCommand = `git clone git@${platform}.com:${full_name}.git`;
   }
 }
 
