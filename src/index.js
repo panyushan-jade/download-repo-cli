@@ -3,7 +3,6 @@ import fs from "fs-extra";
 import chalk from "chalk";
 import path from "path";
 import shell from "shelljs";
-import os from 'os'
 import giteeApi from "./server/gitee.js";
 import githubApi from "./server/github.js";
 
