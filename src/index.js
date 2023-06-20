@@ -7,7 +7,7 @@ import giteeApi from "./server/gitee.js";
 import githubApi from "./server/github.js";
 
 import { checkFileIsExist, getAnswers, wrapperLoading } from "./utils.js";
-import { TEMPFILEPATH, PKG, GITHUB, GITEE,LANGUAGE } from "./constant.js";
+import { TEMPFILEPATH, PKG, GITHUB, GITEE, LANGUAGE } from "./constant.js";
 
 let downLoadCommand = "";
 let repoFileName = "";
@@ -42,12 +42,12 @@ async function checkCache(t, p) {
       token: t ? t : token,
       platform: p ? p : platform,
     });
-  } else if(t && p){
+  } else if (t && p) {
     fs.writeJsonSync(TEMPFILEPATH, {
       token: t,
       platform: p,
     });
-  }else{
+  } else {
     await creatCache();
   }
 }
@@ -62,12 +62,12 @@ async function downLoadRepo() {
       },
     ]);
     if (confirm) {
-      execaCommand(true)
+      execaCommand(true);
     } else {
       shell.exit(1);
     }
   } else {
-    execaCommand(false)
+    execaCommand(false);
   }
 }
 
@@ -96,7 +96,7 @@ async function searchRepos() {
       type: "list",
       name: "language",
       message: "请选择语言",
-      choices:LANGUAGE.map( lan => ({name: lan,value:lan}))
+      choices: LANGUAGE.map((lan) => ({ name: lan, value: lan })),
     },
     {
       type: "input",
@@ -104,10 +104,10 @@ async function searchRepos() {
       message: "请输入作者",
     },
   ]);
-  await searchRepoByPlatform(answers);
+  await searchRepoByParams(answers);
 }
 
-async function searchRepoByPlatform({ repoName, language, author }) {
+async function searchRepoByParams({ repoName, language, author }) {
   const { token, platform } = fs.readJsonSync(TEMPFILEPATH);
   const api = platform === GITHUB ? new githubApi(token) : new giteeApi();
   const params =
@@ -164,7 +164,6 @@ async function searchRepoByPlatform({ repoName, language, author }) {
   repoFileName = full_name?.split("/")[1];
   const tagResult = await wrapperLoading(api.searchTags.bind(api, full_name), {
     loadingInfo: "搜索中......",
-    failInfo: "搜索失败，请重试",
   });
   // 处理tag为空的情况
   if (tagResult?.length) {
